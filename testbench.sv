@@ -39,14 +39,16 @@ module tb_top;
     // 4. 每拍打印 WB 行为
     // =========================
     initial begin
-        $display("time | pc       | RegWrite | rd | wb_data");
+        $display("time | pc|jump| RegWrite | rd | wb_data|mem[1]");
         $display("--------------------------------------------");
-        $monitor("%4t | %h |     %b     | %2d | %h",
+        $monitor("%4t | %h |%b | %b    | %2d | %h|%0d",
             $time,
             dut.pc,
+            dut.id_jump,
             dut.wb_reg_write,
             dut.wb_rd,
-            dut.wb_wdata
+            dut.wb_wdata,
+            dut.u_mem.u_dmem.mem[1] 
         );
     end
 
@@ -63,12 +65,15 @@ module tb_top;
         $display("$t1   = %0d", dut.u_id.u_regfile.rf[9]);
         $display("$t2   = %0d", dut.u_id.u_regfile.rf[10]);
         $display("$t3   = %0d", dut.u_id.u_regfile.rf[11]);
+        $display("$t4 (should be 0) = %0d", dut.u_id.u_regfile.rf[12]);
         $display("$s0   = %0d", dut.u_id.u_regfile.rf[16]);
         $display("$s1   = %0d", dut.u_id.u_regfile.rf[17]);
+        
        
 
         $display("\n====== DATA MEMORY CHECK ======");
         $display("mem[1] = %0d", dut.u_mem.u_dmem.mem[1]);
+        $display("$ra   = %0d", dut.u_id.u_regfile.rf[31]);
         $finish;
     end
 

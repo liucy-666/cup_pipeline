@@ -7,11 +7,11 @@ module wb_stage (
     output logic [31:0] wb_data
 );
     always_comb begin
-    if (jal)
-        wb_data = pc_plus4;
-    else if (memtoreg)
-        wb_data = mem_data;
-    else
-        wb_data = alu_result;
-end
+        if (jal)
+            wb_data = pc_plus4;
+        else if (memtoreg)
+            wb_data = mem_data;
+        else
+            wb_data = alu_result;
+    end
 endmodule

@@ -15,7 +15,7 @@ module ex_mem (
     input  logic        ex_branch_taken,
     input  logic [31:0] ex_jump_target,
     input  logic        ex_jal,
-
+    input  logic [31:0] ex_pc_plus4,
     // to MEM stage
     output logic [31:0] mem_alu_result,
     output logic [31:0] mem_rs2_val,
@@ -28,7 +28,8 @@ module ex_mem (
     output logic        mem_mem_to_reg,
     output logic        mem_branch_taken,
     output logic [31:0] mem_jump_target,
-    output logic        mem_jal
+    output logic        mem_jal,
+    output logic [31:0] mem_pc_plus4
 );
 always_ff @(posedge clk or posedge reset)
 begin
@@ -45,6 +46,7 @@ begin
         mem_branch_taken <= 1'b0;
         mem_jump_target  <= 32'b0;
         mem_jal          <= 1'b0;
+        mem_pc_plus4  <= 32'b0;
     end 
     else begin
         mem_alu_result <= ex_alu_result;
@@ -59,6 +61,7 @@ begin
         mem_branch_taken <= ex_branch_taken;
         mem_jump_target  <= ex_jump_target;
         mem_jal          <= ex_jal;
+        mem_pc_plus4  <= ex_pc_plus4;
     end
 end
 endmodule

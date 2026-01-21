@@ -54,9 +54,10 @@ module controller (
         is_jr = 0;
         regdst_ra   = 0;
         wb_pc_plus4 = 0;
-
+        if (instr == 32'b0) begin
+    // 教学 NOP
+end else begin 
         case (opcode)
-
             // R-type指令
             6'b000000: begin
                 regwrite = 1;
@@ -77,6 +78,7 @@ module controller (
                     6'b001000: begin                                       // jr
                     is_jr    = 1;
                     regwrite = 0;
+                    jump=1;
                     end
                     default:   alu_ctrl = ALU_ADD;
                 endcase 
@@ -153,10 +155,27 @@ module controller (
                 regdst_ra  = 1;
                 wb_pc_plus4= 1;
             end
+            // j
+            6'b000010: begin
+                jump     = 1'b1;
+                regwrite = 1'b0;
+                memwrite = 1'b0;
+                memread  = 1'b0;
+                memtoreg = 1'b0;
+                regdst   = 1'b0;
+            end
             default: begin
                 // NOP
             end
         endcase
+         if (opcode == 6'b000011) begin // jal
+        $display(
+            "[ID] time=%0t JAL detected |  instr=%h",
+            $time,  instr
+        );
     end
+    end
+end
+
 
 endmodule

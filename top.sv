@@ -1,6 +1,6 @@
 module top (
-    input logic clk,
-    input logic reset
+    input  logic clk,
+    input  logic reset
 );
 
     /* =======================
@@ -15,23 +15,24 @@ module top (
         .instr (instr)
     );
 
+    assign pc_plus4 = pc + 4;
+
     /* =======================
        IF / ID
     ======================= */
     logic [31:0] ifid_instr, ifid_pc4;
     logic flush;
-    logic ex_pc4; // 保留端口但不使用
 
     if_id u_ifid (
         .clk      (clk),
         .reset    (reset),
         .if_instr (instr),
-        .flush    (flush),
         .if_pc4   (pc_plus4),
         .stall    (~ifid_write),
+        .flush    (flush),
         .id_instr (ifid_instr),
         .id_pc4   (ifid_pc4),
-        .ex_pc4   (ex_pc4)
+        .ex_pc4   ()           // unused
     );
 
     /* =======================
@@ -40,12 +41,21 @@ module top (
     logic [31:0] id_rs_val, id_rt_val, id_imm;
     logic [4:0]  id_rs, id_rt, id_rd, id_shamt;
     logic [31:0] wb_wdata;
-
+    logic wb_mem_to_reg, wb_reg_write;
+    logic [4:0] wb_rd;
+    logic [31:0] id_jump_target;
+    logic        id_jump;
+    logic        id_jal;
+    logic [4:0] wb_writereg;
+    logic wb_jal;
+    logic wb_reg_write_final;
+    assign wb_writereg = wb_jal ? 5'd31 : wb_rd;
     id_stage u_id (
         .clk          (clk),
         .instr        (ifid_instr),
-        .wb_reg_write (wb_reg_write),
-        .wb_rd        (wb_rd),
+        .wb_reg_write (wb_reg_write_final),
+        //.wb_rd        (wb_rd),
+        .wb_waddr     (wb_writereg),
         .wb_wd        (wb_wdata),
         .rs_val       (id_rs_val),
         .rt_val       (id_rt_val),
@@ -53,44 +63,48 @@ module top (
         .shamt        (id_shamt),
         .rs           (id_rs),
         .rt           (id_rt),
-        .rd           (id_rd)
+        .rd           (id_rd),
+        ////
+        .pc_plus4     (ifid_pc4),   
+        .jump_target  (id_jump_target)
+        
     );
 
     /* =======================
        Controller
     ======================= */
-    logic id_is_branch, id_is_branch_ne;
     logic id_alusrc;
     logic [3:0] id_alu_ctrl;
-    logic id_jump, id_is_jr, id_jal;
     logic id_regwrite, id_memwrite, id_memread;
     logic id_memtoreg, id_regdst;
-
+    logic id_is_branch, id_is_branch_ne;
+    logic id_is_jr;
+    
     controller u_ctrl (
         .instr          (ifid_instr),
-        .is_branch      (id_is_branch),
-        .is_branch_ne   (id_is_branch_ne),
         .alusrc         (id_alusrc),
         .alu_ctrl       (id_alu_ctrl),
-        .jump           (id_jump),
-        .is_jr          (id_is_jr),
-        .jal            (id_jal),
         .regwrite       (id_regwrite),
         .memwrite       (id_memwrite),
-        .memtoreg       (id_memtoreg),
         .memread        (id_memread),
+        .memtoreg       (id_memtoreg),
         .regdst         (id_regdst),
+        .is_branch      (id_is_branch),
+        .is_branch_ne   (id_is_branch_ne),
+        .jump           (id_jump),
+        .jal            (id_jal),   // not used
+        .is_jr          (id_is_jr),
         .is_shift       (),
         .regdst_ra      (),
         .wb_pc_plus4    ()
     );
 
     /* =======================
-       Hazard unit (lw-use)
+       Hazard (load-use only)
     ======================= */
     logic stall;
-    logic [4:0] ex_rs, ex_rt, ex_rd;
-    logic ex_mem_read, ex_mem_write;
+    logic [4:0] ex_rs, ex_rt;
+    logic ex_mem_read;
 
     hazard_unit u_hazard (
         .idex_memread (ex_mem_read),
@@ -107,18 +121,20 @@ module top (
        ID / EX
     ======================= */
     logic [31:0] ex_rs1, ex_rs2, ex_imm;
-    logic [4:0]  ex_shamt;
+    logic [4:0]  ex_shamt, ex_rd;
     logic [3:0]  ex_alu_ctrl;
     logic ex_alusrc;
     logic ex_reg_write, ex_mem_to_reg, ex_reg_dst;
     logic ex_is_branch, ex_is_branch_ne;
-    logic ex_jump, ex_is_jr, ex_jal;
-
+    logic ex_mem_write;
+    logic ex_jal;
+    logic [31:0] ex_pc_plus4;
+    
     id_ex u_idex (
         .clk             (clk),
         .reset           (reset),
         .stall           (stall),
-        .flush           (flush),
+        .flush           (id_jump),   
         .id_rs1_val      (id_rs_val),
         .id_rs2_val      (id_rt_val),
         .id_imm          (id_imm),
@@ -135,9 +151,10 @@ module top (
         .id_reg_dst      (id_regdst),
         .id_is_branch    (id_is_branch),
         .id_is_branch_ne (id_is_branch_ne),
-        .id_jump         (id_jump),
-        .id_is_jr        (id_is_jr),
-        .id_jal          (id_jal),
+        .id_jump   (id_jump),
+        .id_is_jr  (id_is_jr),
+        .id_jal    (id_jal),
+        .id_pc_plus4   (ifid_pc4),
         .ex_rs1_val      (ex_rs1),
         .ex_rs2_val      (ex_rs2),
         .ex_imm          (ex_imm),
@@ -154,26 +171,27 @@ module top (
         .ex_reg_dst      (ex_reg_dst),
         .ex_is_branch    (ex_is_branch),
         .ex_is_branch_ne (ex_is_branch_ne),
-        .ex_jump         (ex_jump),
-        .ex_is_jr        (ex_is_jr),
-        .ex_jal          (ex_jal)
+        .ex_jump         (),
+        .ex_is_jr        (),
+        .ex_jal          (ex_jal),
+        .ex_pc_plus4     (ex_pc_plus4)
     );
 
     /* =======================
        Forwarding
     ======================= */
     logic [1:0] forwardA, forwardB;
-    logic [31:0] mem_alu_result, mem_rs2;
+    logic [31:0] mem_alu_result;
     logic [4:0]  mem_rd;
-    logic mem_reg_write, mem_mem_to_reg;
+    logic mem_reg_write;
 
     forward_unit u_fwd (
         .idex_rs        (ex_rs),
         .idex_rt        (ex_rt),
         .exmem_rd       (mem_rd),
         .exmem_regwrite (mem_reg_write),
-        .memwb_rd       (wb_rd),
-        .memwb_regwrite (wb_reg_write),
+        .memwb_rd       (wb_writereg),
+        .memwb_regwrite (wb_reg_write_final),
         .forwardA       (forwardA),
         .forwardB       (forwardB)
     );
@@ -185,7 +203,7 @@ module top (
     logic alu_zero;
     logic [4:0] ex_writereg;
     logic ex_branch_taken;
-    logic [31:0] ex_jump_target;
+    logic [31:0] ex_branch_target;
     logic [31:0] store_data;
 
     ex_stage u_ex (
@@ -204,47 +222,52 @@ module top (
         .memwb_wdata    (wb_wdata),
         .is_branch      (ex_is_branch),
         .is_branch_ne   (ex_is_branch_ne),
-        .jump           (ex_jump),
-        .is_jr          (ex_is_jr),
-        .jal            (ex_jal),
+        .jump           (1'b0),
+        .is_jr          (1'b0),
+        .jal            (1'b0),
         .alu_result     (alu_result),
         .alu_zero       (alu_zero),
         .writereg       (ex_writereg),
         .branch_taken   (ex_branch_taken),
-        .jump_target    (ex_jump_target),
+        .jump_target    (ex_branch_target),
         .store_data     (store_data)
     );
 
-    assign flush = ex_branch_taken;
+    assign flush = ex_branch_taken | id_jump;
 
     /* =======================
        EX / MEM
     ======================= */
     logic mem_mem_read, mem_mem_write;
-
+    logic [31:0] mem_rs2_val;
+    logic mem_jal;
+    logic [31:0] mem_pc_plus4;
+    
     ex_mem u_exmem (
-        .clk              (clk),
-        .reset            (reset),
-        .ex_alu_result    (alu_result),
-        .ex_rs2_val       (store_data),
-        .ex_rd            (ex_writereg),
-        .ex_mem_read      (ex_mem_read),
-        .ex_mem_write     (ex_mem_write),
-        .ex_reg_write     (ex_reg_write),
-        .ex_mem_to_reg    (ex_mem_to_reg),
-        .ex_branch_taken  (ex_branch_taken),
-        .ex_jump_target   (ex_jump_target),
-        .ex_jal           (ex_jal),
-        .mem_alu_result   (mem_alu_result),
-        .mem_rs2_val      (mem_rs2),
-        .mem_rd           (mem_rd),
-        .mem_mem_read     (mem_mem_read),
-        .mem_mem_write    (mem_mem_write),
-        .mem_reg_write    (mem_reg_write),
-        .mem_mem_to_reg   (mem_mem_to_reg),
-        .mem_branch_taken (),
-        .mem_jump_target  (),
-        .mem_jal          ()
+        .clk            (clk),
+        .reset          (reset),
+        .ex_alu_result  (alu_result),
+        .ex_rs2_val     (store_data),
+        .ex_rd          (ex_writereg),
+        .ex_mem_read    (ex_mem_read),
+        .ex_mem_write   (ex_mem_write),
+        .ex_reg_write   (ex_reg_write),
+        .ex_mem_to_reg  (ex_mem_to_reg),
+        .ex_branch_taken(ex_branch_taken),
+        .ex_jump_target (ex_branch_target),
+        .ex_jal         (ex_jal),
+        .ex_pc_plus4   (ex_pc_plus4),
+        .mem_alu_result (mem_alu_result),
+        .mem_rs2_val    (mem_rs2_val),
+        .mem_rd         (mem_rd),
+        .mem_mem_read   (mem_mem_read),
+        .mem_mem_write  (mem_mem_write),
+        .mem_reg_write  (mem_reg_write),
+        .mem_mem_to_reg (),
+        .mem_branch_taken(),
+        .mem_jump_target(),
+        .mem_jal        (mem_jal),
+        .mem_pc_plus4   (mem_pc_plus4)
     );
 
     /* =======================
@@ -257,7 +280,8 @@ module top (
         .memread  (mem_mem_read),
         .memwrite (mem_mem_write),
         .addr     (mem_alu_result),
-        .wd       (mem_rs2),
+        //.wd       (store_data),
+        .wd       (mem_rs2_val),
         .rd       (mem_data)
     );
 
@@ -265,27 +289,28 @@ module top (
        MEM / WB
     ======================= */
     logic [31:0] wb_mem_data, wb_alu_result;
-    logic wb_mem_to_reg, wb_jal;
+    logic wb_mem_to_reg, wb_reg_write;
+    logic [4:0] wb_rd;
     logic [31:0] wb_pc_plus4;
-
     mem_wb u_memwb (
-        .clk             (clk),
-        .reset           (reset),
-        .mem_data        (mem_data),
-        .mem_alu_result  (mem_alu_result),
-        .mem_rd          (mem_rd),
-        .mem_reg_write   (mem_reg_write),
-        .mem_mem_to_reg  (mem_mem_to_reg),
-        .mem_jal         (1'b0),
-        .mem_pc_plus4    (32'b0),
-        .wb_mem_data     (wb_mem_data),
-        .wb_alu_result   (wb_alu_result),
-        .wb_rd           (wb_rd),
-        .wb_reg_write    (wb_reg_write),
-        .wb_mem_to_reg   (wb_mem_to_reg),
-        .wb_jal          (wb_jal),
-        .wb_pc_plus4     (wb_pc_plus4)
+        .clk            (clk),
+        .reset          (reset),
+        .mem_data       (mem_data),
+        .mem_alu_result (mem_alu_result),
+        .mem_rd         (mem_rd),
+        .mem_reg_write  (mem_reg_write),
+        .mem_mem_to_reg (mem_mem_to_reg),
+        .mem_jal        (mem_jal),
+        .mem_pc_plus4   (mem_pc_plus4),
+        .wb_mem_data    (wb_mem_data),
+        .wb_alu_result  (wb_alu_result),
+        .wb_rd          (wb_rd),
+        .wb_reg_write   (wb_reg_write),
+        .wb_mem_to_reg  (wb_mem_to_reg),
+        .wb_jal         (wb_jal),
+        .wb_pc_plus4    (wb_pc_plus4)
     );
+    assign wb_reg_write_final = wb_reg_write | wb_jal;
 
     /* =======================
        WB stage
@@ -299,29 +324,32 @@ module top (
         .wb_data    (wb_wdata)
     );
 
-//PC
+    /* =======================
+       PC register
+    ======================= */
     always_ff @(posedge clk or posedge reset) begin
-    if (reset)
-        pc <= 32'b0;
-    else if (pc_write)
-        pc <= pc_next;
-end
+        if (reset)
+            pc <= 32'b0;
+        else if (pc_write)
+            pc <= pc_next;
+    end
 
-/* =======================
-   PC+4 logic
-======================= */
-assign pc_plus4 = pc + 4;
-
-always_comb begin
-    pc_next = pc_plus4; // 默认顺序执行
-    if (ex_branch_taken)
-        pc_next = ex_jump_target; // branch taken
-    else if (ex_jump)
-        pc_next = ex_jump_target; // j / jal
-    else if (ex_is_jr)
-        pc_next = ex_jump_target; // jr
+    /* =======================
+       PC select
+    ======================= */
+    always_comb begin
+    if (id_is_jr) begin
+        pc_next = id_rs_val;          // jr
+    end else if (id_jump) begin
+        pc_next = id_jump_target;     // j / jal
+    end else if (ex_branch_taken) begin
+        pc_next = ex_branch_target;
+    end else begin
+        pc_next = pc_plus4;
+    end
 end
 
 endmodule
+
 
 

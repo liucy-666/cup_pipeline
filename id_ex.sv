@@ -27,6 +27,9 @@ module id_ex (
     input  logic        id_jump,
     input  logic        id_is_jr,
     input  logic        id_jal,
+    // inputs
+    input  logic [31:0] id_pc_plus4,
+    output logic [31:0] ex_pc_plus4,
 
     // to EX stage (data)
     output logic [31:0] ex_rs1_val,
@@ -56,6 +59,7 @@ module id_ex (
 );
 
     always_ff @(posedge clk or posedge reset) begin
+
         if (reset) begin
             // 真正的全局复位
             ex_rs1_val    <= 32'b0;
@@ -82,26 +86,8 @@ module id_ex (
             ex_jump         <= 1'b0;
             ex_is_jr        <= 1'b0;
             ex_jal          <= 1'b0;
+            ex_pc_plus4     <= 32'b0;
 
-        end else if (stall) begin
-            // 插入 bubble（NOP）
-            // 数据无所谓，控制信号必须清零
-            ex_alu_ctrl   <= 4'b0;
-            ex_alu_src    <= 1'b0;
-
-            ex_mem_read   <= 1'b0;
-            ex_mem_write  <= 1'b0;
-
-            ex_reg_write  <= 1'b0;
-            ex_mem_to_reg <= 1'b0;
-            ex_reg_dst    <= 1'b0;
-            ex_shamt      <= 5'b0;
-            ex_is_branch    <= 1'b0;
-            ex_is_branch_ne <= 1'b0;
-            ex_jump         <= 1'b0;
-            ex_is_jr        <= 1'b0;
-            ex_jal          <= 1'b0;
-        
         end else if (flush) begin
             // 插入 bubble（NOP）
             // 数据无所谓，控制信号必须清零
@@ -120,6 +106,27 @@ module id_ex (
             ex_jump         <= 1'b0;
             ex_is_jr        <= 1'b0;
             ex_jal          <= 1'b0;
+            ex_pc_plus4     <= 32'b0;
+        
+        end else if (stall) begin
+            // 插入 bubble（NOP）
+            // 数据无所谓，控制信号必须清零
+            ex_alu_ctrl   <= 4'b0;
+            ex_alu_src    <= 1'b0;
+
+            ex_mem_read   <= 1'b0;
+            ex_mem_write  <= 1'b0;
+
+            ex_reg_write  <= 1'b0;
+            ex_mem_to_reg <= 1'b0;
+            ex_reg_dst    <= 1'b0;
+            ex_shamt      <= 5'b0;
+            ex_is_branch    <= 1'b0;
+            ex_is_branch_ne <= 1'b0;
+            ex_jump         <= 1'b0;
+            ex_is_jr        <= 1'b0;
+            ex_jal          <= 1'b0;
+            ex_pc_plus4     <= 32'b0;
         
         end  else begin
             // 正常流水
@@ -146,7 +153,9 @@ module id_ex (
             ex_jump         <= id_jump;
             ex_is_jr        <= id_is_jr;
             ex_jal          <= id_jal;
+            ex_pc_plus4   <= id_pc_plus4;
         end
+        
     end
 
 endmodule

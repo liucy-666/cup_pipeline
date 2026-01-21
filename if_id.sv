@@ -32,6 +32,8 @@ always_ff @(posedge clk or posedge reset)
             id_pc4   <= if_pc4;
             ex_pc4 <= id_pc4;
         end
+        
     end
+    
 
 endmodule

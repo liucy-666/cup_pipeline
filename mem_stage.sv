@@ -14,4 +14,7 @@ module mem_stage (
         .memwrite (memwrite),
         .rd       (rd)
     );
+    always_ff @(posedge clk) begin
+
+end
 endmodule

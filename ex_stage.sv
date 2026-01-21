@@ -72,7 +72,19 @@ module ex_stage (
         .result   (alu_result),
         .zero     (alu_zero)
     );
-    assign store_data = alu_in2;
+    logic [31:0] store_data_fwd;
+    
+    always_comb begin
+    case (forwardB)
+        2'b00: store_data_fwd = rd2;
+        2'b10: store_data_fwd = exmem_aluout;
+        2'b01: store_data_fwd = memwb_wdata;
+        default: store_data_fwd = rd2;
+        
+    endcase
+    end
+
+    assign store_data = store_data_fwd;
     assign writereg = regdst ? rd : rt;
 
 endmodule
