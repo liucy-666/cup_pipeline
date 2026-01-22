@@ -25,7 +25,7 @@ module id_ex (
     input  logic        id_is_branch,
     input  logic        id_is_branch_ne,
     input  logic        id_jump,
-    input  logic        id_is_jr,
+    //input  logic        id_is_jr,
     input  logic        id_jal,
     // inputs
     input  logic [31:0] id_pc_plus4,
@@ -54,7 +54,7 @@ module id_ex (
     output logic        ex_is_branch,
     output logic        ex_is_branch_ne,
     output logic        ex_jump,
-    output logic        ex_is_jr,
+    //output logic        ex_is_jr,
     output logic        ex_jal
 );
 
@@ -84,7 +84,7 @@ module id_ex (
             ex_is_branch    <= 1'b0;
             ex_is_branch_ne <= 1'b0;
             ex_jump         <= 1'b0;
-            ex_is_jr        <= 1'b0;
+            //ex_is_jr        <= 1'b0;
             ex_jal          <= 1'b0;
             ex_pc_plus4     <= 32'b0;
 
@@ -104,9 +104,7 @@ module id_ex (
             ex_is_branch    <= 1'b0;
             ex_is_branch_ne <= 1'b0;
             ex_jump         <= 1'b0;
-            ex_is_jr        <= 1'b0;
-            //ex_jal          <= id_jal;
-            //ex_pc_plus4     <= id_pc_plus4;
+            //ex_is_jr        <= 1'b0;
             ex_jal          <= 1'b0;
             ex_pc_plus4     <= 32'b0;
         end 
@@ -125,7 +123,7 @@ module id_ex (
             ex_is_branch    <= 1'b0;
             ex_is_branch_ne <= 1'b0;
             ex_jump         <= 1'b0;
-            ex_is_jr        <= 1'b0;
+            //ex_is_jr        <= 1'b0;
             ex_jal          <= 1'b0;
 
             ex_shamt      <= 5'b0;
@@ -153,7 +151,7 @@ module id_ex (
             ex_is_branch    <= id_is_branch;
             ex_is_branch_ne <= id_is_branch_ne;
             ex_jump         <= id_jump;
-            ex_is_jr        <= id_is_jr;
+            //ex_is_jr        <= id_is_jr;
             ex_jal          <= id_jal;
             ex_pc_plus4   <= id_pc_plus4;
         end

@@ -52,53 +52,6 @@ module tb_top;
         );
     end
 
-    // =====================================================
-    // 5. Explicit mechanism checks (关键)
-    // =====================================================
-
-    // -------- Forwarding observation --------
-    always @(posedge clk) begin
-        if (dut.forwardA != 2'b00 || dut.forwardB != 2'b00) begin
-            $display("[FWD] time=%0t A=%b B=%b",
-                $time, dut.forwardA, dut.forwardB);
-        end
-    end
-
-    // -------- Stall observation --------
-    always @(posedge clk) begin
-        if (dut.stall) begin
-            $display("[STALL] time=%0t PC held at %h",
-                $time, dut.pc);
-        end
-    end
-
-    // -------- Flush observation --------
-    always @(posedge clk) begin
-        if (dut.flush_if_id) begin
-            $display("[FLUSH_if_id] time=%0t at PC=%h",
-                $time, dut.pc);
-        end
-        if (dut.flush_id_ex) begin
-            $display("[FLUSH_id_ex] time=%0t at PC=%h",
-                $time, dut.pc);
-        end
-        
-    end
-
-    // -------- JAL path observation --------
-    always @(posedge clk) begin
-        if (dut.ex_jal) begin
-            $display("[EX] JAL in EX stage, PC+4=%h",
-                dut.ex_pc_plus4);
-        end
-    end
-
-    always @(posedge clk) begin
-        if (dut.mem_jal) begin
-            $display("[EX/MEM] JAL passing through EX/MEM, PC+4=%h",
-                dut.mem_pc_plus4);
-        end
-    end
 
     // =====================================================
     // 6. Final architectural state check

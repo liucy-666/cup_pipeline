@@ -117,8 +117,8 @@ module top (
         .stall        (stall)
     );
 
-    assign pc_write   = ~stall;
-    assign ifid_write = ~stall;
+    assign pc_write = ~stall & ~id_is_jr;
+    assign ifid_write = ~stall & ~id_is_jr;
 
     /* =======================
        ID / EX
@@ -132,7 +132,7 @@ module top (
     logic ex_mem_write;
     logic ex_jal;
     logic [31:0] ex_pc_plus4;
-    
+    logic ex_is_jr;
     id_ex u_idex (
         .clk             (clk),
         .reset           (reset),
@@ -155,7 +155,7 @@ module top (
         .id_is_branch    (id_is_branch),
         .id_is_branch_ne (id_is_branch_ne),
         .id_jump   (id_jump),
-        .id_is_jr  (id_is_jr),
+        //.id_is_jr  (),
         .id_jal    (id_jal),
         .id_pc_plus4   (ifid_pc4),
         .ex_rs1_val      (ex_rs1),
@@ -175,7 +175,7 @@ module top (
         .ex_is_branch    (ex_is_branch),
         .ex_is_branch_ne (ex_is_branch_ne),
         .ex_jump         (),
-        .ex_is_jr        (),
+        //.ex_is_jr        (),
         .ex_jal          (ex_jal),
         .ex_pc_plus4     (ex_pc_plus4)
     );
@@ -208,7 +208,17 @@ module top (
     logic ex_branch_taken;
     logic [31:0] ex_branch_target;
     logic [31:0] store_data;
+    logic [31:0] ex_rs1_fwd;
 
+    always_comb begin
+    case (forwardA)
+        2'b00: ex_rs1_fwd = ex_rs1;         // ID/EX.rs1 原值
+        2'b10: ex_rs1_fwd = mem_alu_result; // EX/MEM.ALU
+        2'b01: ex_rs1_fwd = wb_wdata;       // MEM/WB 写回数据
+        default: ex_rs1_fwd = ex_rs1;
+    endcase
+    end
+    
     ex_stage u_ex (
         .rd1            (ex_rs1),
         .rd2            (ex_rs2),
@@ -347,22 +357,20 @@ module top (
     ======================= */
     always_comb begin
     if (id_is_jr) begin
-        pc_next = id_rs_val;          // jr
-    end else if (id_jump) begin
-        pc_next = id_jump_target;     // j / jal
+        pc_next = id_rs_val;
     end else if (ex_branch_taken) begin
         pc_next = ex_branch_target;
+    end else if (id_jump) begin
+        pc_next = id_jump_target;
     end else begin
         pc_next = pc_plus4;
     end
-    end
+end
 
 
+assign flush_if_id = id_jump || id_is_jr || ex_branch_taken;
+assign flush_id_ex = ex_branch_taken;
 
-    assign flush_if_id = id_jump || id_is_jr || ex_branch_taken;
-    assign flush_id_ex = ex_branch_taken;
-
-    
 endmodule
 
 
