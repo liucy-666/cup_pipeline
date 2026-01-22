@@ -13,5 +13,6 @@ module wb_stage (
             wb_data = mem_data;
         else
             wb_data = alu_result;
+ 
     end
 endmodule

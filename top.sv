@@ -21,15 +21,18 @@ module top (
        IF / ID
     ======================= */
     logic [31:0] ifid_instr, ifid_pc4;
-    logic flush;
-
+    //////////////新增flush控制
+    //logic flush;
+    logic flush_if_id,flush_id_ex;
+    ///////////////////////
+    
     if_id u_ifid (
         .clk      (clk),
         .reset    (reset),
         .if_instr (instr),
         .if_pc4   (pc_plus4),
         .stall    (~ifid_write),
-        .flush    (flush),
+        .flush    (flush_if_id ),
         .id_instr (ifid_instr),
         .id_pc4   (ifid_pc4),
         .ex_pc4   ()           // unused
@@ -92,7 +95,7 @@ module top (
         .is_branch      (id_is_branch),
         .is_branch_ne   (id_is_branch_ne),
         .jump           (id_jump),
-        .jal            (id_jal),   // not used
+        .jal            (id_jal), 
         .is_jr          (id_is_jr),
         .is_shift       (),
         .regdst_ra      (),
@@ -134,7 +137,7 @@ module top (
         .clk             (clk),
         .reset           (reset),
         .stall           (stall),
-        .flush           (id_jump),   
+        .flush           (flush_id_ex),   
         .id_rs1_val      (id_rs_val),
         .id_rs2_val      (id_rt_val),
         .id_imm          (id_imm),
@@ -224,7 +227,7 @@ module top (
         .is_branch_ne   (ex_is_branch_ne),
         .jump           (1'b0),
         .is_jr          (1'b0),
-        .jal            (1'b0),
+        .jal            (ex_jal),
         .alu_result     (alu_result),
         .alu_zero       (alu_zero),
         .writereg       (ex_writereg),
@@ -233,7 +236,7 @@ module top (
         .store_data     (store_data)
     );
 
-    assign flush = ex_branch_taken | id_jump;
+    //assign flush = ex_branch_taken | id_jump;
 
     /* =======================
        EX / MEM
@@ -244,31 +247,33 @@ module top (
     logic [31:0] mem_pc_plus4;
     
     ex_mem u_exmem (
-        .clk            (clk),
-        .reset          (reset),
-        .ex_alu_result  (alu_result),
-        .ex_rs2_val     (store_data),
-        .ex_rd          (ex_writereg),
-        .ex_mem_read    (ex_mem_read),
-        .ex_mem_write   (ex_mem_write),
-        .ex_reg_write   (ex_reg_write),
-        .ex_mem_to_reg  (ex_mem_to_reg),
-        .ex_branch_taken(ex_branch_taken),
-        .ex_jump_target (ex_branch_target),
-        .ex_jal         (ex_jal),
-        .ex_pc_plus4   (ex_pc_plus4),
-        .mem_alu_result (mem_alu_result),
-        .mem_rs2_val    (mem_rs2_val),
-        .mem_rd         (mem_rd),
-        .mem_mem_read   (mem_mem_read),
-        .mem_mem_write  (mem_mem_write),
-        .mem_reg_write  (mem_reg_write),
-        .mem_mem_to_reg (),
-        .mem_branch_taken(),
-        .mem_jump_target(),
-        .mem_jal        (mem_jal),
-        .mem_pc_plus4   (mem_pc_plus4)
-    );
+    .clk            (clk),
+    .reset          (reset),
+    .ex_alu_result  (alu_result),
+    .ex_rs2_val     (store_data),
+    .ex_rd          (ex_writereg),
+    .ex_mem_read    (ex_mem_read),
+    .ex_mem_write   (ex_mem_write),
+    .ex_reg_write   (ex_reg_write),
+    .ex_mem_to_reg  (ex_mem_to_reg),
+    .ex_branch_taken(ex_branch_taken),
+    .ex_jump_target (ex_branch_target),
+
+    // 新增 jal 数据
+    .ex_jal         (ex_jal),
+    .ex_pc_plus4    (ex_pc_plus4),
+
+    .mem_alu_result (mem_alu_result),
+    .mem_rs2_val    (mem_rs2_val),
+    .mem_rd         (mem_rd),
+    .mem_mem_read   (mem_mem_read),
+    .mem_mem_write  (mem_mem_write),
+    .mem_reg_write  (mem_reg_write),
+
+    // 新增 jal 输出
+    .mem_jal        (mem_jal),
+    .mem_pc_plus4   (mem_pc_plus4)
+);
 
     /* =======================
        MEM stage
@@ -293,23 +298,26 @@ module top (
     logic [4:0] wb_rd;
     logic [31:0] wb_pc_plus4;
     mem_wb u_memwb (
-        .clk            (clk),
-        .reset          (reset),
-        .mem_data       (mem_data),
-        .mem_alu_result (mem_alu_result),
-        .mem_rd         (mem_rd),
-        .mem_reg_write  (mem_reg_write),
-        .mem_mem_to_reg (mem_mem_to_reg),
-        .mem_jal        (mem_jal),
-        .mem_pc_plus4   (mem_pc_plus4),
-        .wb_mem_data    (wb_mem_data),
-        .wb_alu_result  (wb_alu_result),
-        .wb_rd          (wb_rd),
-        .wb_reg_write   (wb_reg_write),
-        .wb_mem_to_reg  (wb_mem_to_reg),
-        .wb_jal         (wb_jal),
-        .wb_pc_plus4    (wb_pc_plus4)
-    );
+    .clk            (clk),
+    .reset          (reset),
+    .mem_data       (mem_data),
+    .mem_alu_result (mem_alu_result),
+    .mem_rd         (mem_rd),
+    .mem_reg_write  (mem_reg_write),
+    .mem_mem_to_reg (mem_mem_to_reg),
+
+    // jal 数据
+    .mem_jal        (mem_jal),
+    .mem_pc_plus4   (mem_pc_plus4),
+
+    .wb_mem_data    (wb_mem_data),
+    .wb_alu_result  (wb_alu_result),
+    .wb_rd          (wb_rd),
+    .wb_reg_write   (wb_reg_write),
+    .wb_mem_to_reg  (wb_mem_to_reg),
+    .wb_jal         (wb_jal),
+    .wb_pc_plus4    (wb_pc_plus4)
+);
     assign wb_reg_write_final = wb_reg_write | wb_jal;
 
     /* =======================
@@ -347,8 +355,14 @@ module top (
     end else begin
         pc_next = pc_plus4;
     end
-end
+    end
 
+
+
+    assign flush_if_id = id_jump || id_is_jr || ex_branch_taken;
+    assign flush_id_ex = ex_branch_taken;
+
+    
 endmodule
 
 

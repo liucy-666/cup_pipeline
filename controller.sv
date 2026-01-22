@@ -168,12 +168,6 @@ end else begin
                 // NOP
             end
         endcase
-         if (opcode == 6'b000011) begin // jal
-        $display(
-            "[ID] time=%0t JAL detected |  instr=%h",
-            $time,  instr
-        );
-    end
     end
 end
 

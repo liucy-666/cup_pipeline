@@ -46,7 +46,7 @@ begin
         mem_branch_taken <= 1'b0;
         mem_jump_target  <= 32'b0;
         mem_jal          <= 1'b0;
-        mem_pc_plus4  <= 32'b0;
+        mem_pc_plus4        <= 32'b0;
     end 
     else begin
         mem_alu_result <= ex_alu_result;
@@ -64,4 +64,10 @@ begin
         mem_pc_plus4  <= ex_pc_plus4;
     end
 end
+always_ff @(posedge clk) begin
+    if (ex_jal) begin
+        $display("[EX/MEM][%0t] JAL passing through EX/MEM, PC+4=%h", $time, ex_pc_plus4);
+    end
+end
+
 endmodule

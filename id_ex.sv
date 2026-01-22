@@ -105,29 +105,31 @@ module id_ex (
             ex_is_branch_ne <= 1'b0;
             ex_jump         <= 1'b0;
             ex_is_jr        <= 1'b0;
+            //ex_jal          <= id_jal;
+            //ex_pc_plus4     <= id_pc_plus4;
             ex_jal          <= 1'b0;
             ex_pc_plus4     <= 32'b0;
-        
-        end else if (stall) begin
-            // 插入 bubble（NOP）
-            // 数据无所谓，控制信号必须清零
+        end 
+        else if (stall) begin
+    // 插入 bubble（NOP）
             ex_alu_ctrl   <= 4'b0;
             ex_alu_src    <= 1'b0;
 
-            ex_mem_read   <= 1'b0;
+            ex_mem_read   <= 1'b0;   // ⭐ 关键
             ex_mem_write  <= 1'b0;
 
             ex_reg_write  <= 1'b0;
             ex_mem_to_reg <= 1'b0;
             ex_reg_dst    <= 1'b0;
-            ex_shamt      <= 5'b0;
+
             ex_is_branch    <= 1'b0;
             ex_is_branch_ne <= 1'b0;
             ex_jump         <= 1'b0;
             ex_is_jr        <= 1'b0;
             ex_jal          <= 1'b0;
-            ex_pc_plus4     <= 32'b0;
-        
+
+            ex_shamt      <= 5'b0;
+            ex_pc_plus4   <= 32'b0;
         end  else begin
             // 正常流水
             ex_rs1_val    <= id_rs1_val;
@@ -155,7 +157,9 @@ module id_ex (
             ex_jal          <= id_jal;
             ex_pc_plus4   <= id_pc_plus4;
         end
-        
-    end
+        $display("[PIPE] id_jal=%b ex_jal=%b",
+         id_jal, ex_jal);
+    
+end
 
 endmodule

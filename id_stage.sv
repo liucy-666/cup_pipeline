@@ -72,4 +72,13 @@ module id_stage (
                 imm_ext = {{16{instr[15]}}, instr[15:0]};
         endcase
     end
+    always_ff @(negedge clk) begin
+    if (wb_reg_write) begin
+        $display(
+          "[RF WRITE] time=%0t wa=%0d wd=%h",
+          $time, wb_waddr, wb_wd
+        );
+    end
+end
+
 endmodule

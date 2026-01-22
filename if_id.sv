@@ -19,21 +19,25 @@ always_ff @(posedge clk or posedge reset)
         if (reset) begin
             id_instr <= 32'b0;
             id_pc4   <= 32'b0;
-            ex_pc4   <= 32'b0;
         end 
         else if (flush) begin
         // 👇 插入 NOP
             id_instr <= 32'b0;
             id_pc4   <= 32'b0;
-            ex_pc4   <= 32'b0;
         end
         else  if(!stall) begin
             id_instr <= if_instr;
             id_pc4   <= if_pc4;
-            ex_pc4 <= id_pc4;
         end
-        
     end
+ always_ff @(posedge clk or posedge reset) begin
+    if (reset) begin
+        ex_pc4 <= 32'b0;
+    end
+    else begin
+        ex_pc4 <= id_pc4;
+    end
+end
     
 
 endmodule
