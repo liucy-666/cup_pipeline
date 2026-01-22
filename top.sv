@@ -1,6 +1,9 @@
 module top (
     input  logic clk,
-    input  logic reset
+    input  logic reset,
+    ////////输出
+    output logic dbg_commit,
+    output logic [31:0] dbg_regs [0:31]//寄存器数据输出
 );
 
     /* =======================
@@ -69,8 +72,8 @@ module top (
         .rd           (id_rd),
         ////
         .pc_plus4     (ifid_pc4),   
-        .jump_target  (id_jump_target)
-        
+        .jump_target  (id_jump_target),
+        .dbg_regs (dbg_regs)
     );
 
     /* =======================
@@ -297,7 +300,8 @@ module top (
         .addr     (mem_alu_result),
         //.wd       (store_data),
         .wd       (mem_rs2_val),
-        .rd       (mem_data)
+        .rd       (mem_data),
+        .reset    (reset)
     );
 
     /* =======================
@@ -333,7 +337,7 @@ module top (
     /* =======================
        WB stage
     ======================= */
-    wb_stage u_wb (
+   wb_stage u_wb (
         .memtoreg   (wb_mem_to_reg),
         .jal        (wb_jal),
         .alu_result (wb_alu_result),
@@ -371,6 +375,9 @@ end
 assign flush_if_id = id_jump || id_is_jr || ex_branch_taken;
 assign flush_id_ex = ex_branch_taken;
 
+
+///////
+assign dbg_commit = wb_reg_write_final;
 endmodule
 
 

@@ -52,9 +52,17 @@ always_ff @(posedge clk or posedge reset) begin
         // jal 写回处理
         wb_writereg        <= mem_jal ? 5'd31 : mem_rd;
         wb_reg_write_final <= mem_reg_write | mem_jal;
-        wb_wdata           <= mem_jal ? mem_pc_plus4 :
-                              (mem_mem_to_reg ? mem_data : mem_alu_result);
+        wb_wdata <= mem_jal ? wb_pc_plus4 :
+            (wb_mem_to_reg ? wb_mem_data : wb_alu_result);
     end
+   
+end 
+always_ff @(posedge clk) begin
+    if (wb_reg_write_final) begin
+        $display("[WB][%0t] write r%d <= %h",
+                 $time, wb_writereg, wb_wdata);
+    end
+
 end
 
 endmodule

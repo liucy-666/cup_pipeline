@@ -21,7 +21,9 @@ module id_stage (
     output logic [4:0]  rd,
     //////////jump
     input  logic [31:0] pc_plus4,
-    output logic [31:0] jump_target  
+    output logic [31:0] jump_target,
+    ////////
+    output logic [31:0] dbg_regs [0:31]
 );
 
     // instruction fields
@@ -46,7 +48,8 @@ module id_stage (
         .wa  (wb_waddr),
         .wd  (wb_wd),
         .rd1 (rs_raw),
-        .rd2 (rt_raw)
+        .rd2 (rt_raw),
+        .dbg_regs (dbg_regs)
         //.rd1 (rs_val),
        // .rd2 (rt_val)
     );
@@ -72,13 +75,5 @@ module id_stage (
                 imm_ext = {{16{instr[15]}}, instr[15:0]};
         endcase
     end
-    always_ff @(negedge clk) begin
-    if (wb_reg_write) begin
-        $display(
-          "[RF WRITE] time=%0t wa=%0d wd=%h",
-          $time, wb_waddr, wb_wd
-        );
-    end
-end
 
 endmodule

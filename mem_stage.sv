@@ -4,6 +4,7 @@ module mem_stage (
     input  logic        memwrite,
     input  logic [31:0] addr,
     input  logic [31:0] wd,
+    input  logic        reset,
     output logic [31:0] rd
 );
     dmem u_dmem (
@@ -12,7 +13,8 @@ module mem_stage (
         .wd       (wd),
         .memread  (memread),
         .memwrite (memwrite),
-        .rd       (rd)
+        .rd       (rd),
+        .reset    (reset)
     );
     always_ff @(posedge clk) begin
 
