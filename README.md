@@ -79,11 +79,11 @@
 ├── id_ex.sv        # ID/EX 流水线寄存器
 ├── ex_mem.sv       # EX/MEM 流水线寄存器
 ├── mem_wb.sv       # MEM/WB 流水线寄存器
-├── forward.sv      # 前递单元
-├── hazard.sv       # 冒险检测与 stall 控制
+├── forward.sv      # 重定向单元
+├── hazard.sv       # 数据冒险检测与 stall 控制
 ├── alu.sv          # 算术逻辑单元
 ├── controller.sv   # 指令译码与控制信号生成
-└── testbench.sv    # 仿真测试平台
+└── testbench.sv    # 仿真测试
 ```
 
 ##  仿真与调试
