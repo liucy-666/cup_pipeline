@@ -1,4 +1,4 @@
-# cup_pipeline
+# cup_pipeline (NUDT数字设计与计算机体系结构课程大作业)
 
 一个基于 **SystemVerilog** 实现的五级流水线（IF / ID / EX / MEM / WB）RISC 处理器项目，用于课程设计与流水线机制学习。该工程完整实现了数据冒险与控制冒险处理，并通过仿真验证了功能正确性。
 
