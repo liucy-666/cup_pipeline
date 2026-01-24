@@ -9,7 +9,7 @@ create_clock -period 10.000 -name clk_100mhz [get_ports clk_100mhz]
 # 2. 复位按键约束
 set_property PACKAGE_PIN U18 [get_ports btn_reset]
 set_property IOSTANDARD LVCMOS33 [get_ports btn_reset]
-set_property PULLUP true [get_ports btn_reset]
+#set_property PULLUP true [get_ports btn_reset]
 
 # 3. 拨码开关约束
 set_property PACKAGE_PIN V17 [get_ports {sw[0]}]
@@ -17,7 +17,7 @@ set_property PACKAGE_PIN V16 [get_ports {sw[1]}]
 set_property PACKAGE_PIN W16 [get_ports {sw[2]}]
 set_property PACKAGE_PIN W17 [get_ports {sw[3]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {sw[*]}]
-set_property PULLUP true [get_ports {sw[*]}]
+
 
 # 4. LED 约束
 set_property PACKAGE_PIN U16 [get_ports {led[0]}]
@@ -60,4 +60,4 @@ set_property IOSTANDARD LVCMOS33 [get_ports {an[*]}]
 set_property DRIVE 8 [get_ports {seg[*]} {an[*]}]
 
 # 6. 全局约束
-set_property PULLDOWN true [get_ports -filter {DIRECTION == "IN" && !NAME =~ "clk_100mhz" && !NAME =~ "btn_reset" && !NAME =~ "sw[*]"}]
+#set_property PULLDOWN true [get_ports -filter {DIRECTION == "IN" && !NAME =~ "clk_100mhz" && !NAME =~ "btn_reset" && !NAME =~ "sw[*]"}]

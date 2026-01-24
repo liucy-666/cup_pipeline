@@ -27,14 +27,14 @@ module seg7_driver (
     logic [3:0] hex;
 
     always_comb begin
-        case (scan_sel)
-            2'd0: hex = data[3:0];
-            2'd1: hex = data[7:4];
-            2'd2: hex = data[11:8];
-            2'd3: hex = data[15:12];
-            default: hex = 4'h0;
-        endcase
-    end
+    case (scan_sel)
+        2'd0: hex = data[15:12]; // 最右显示最高 nibble
+        2'd1: hex = data[11:8];
+        2'd2: hex = data[7:4];
+        2'd3: hex = data[3:0];   // 最左显示最低 nibble
+        default: hex = 4'h0;
+    endcase
+end
 
     /* ===============================
        3. 数码管使能（低有效）

@@ -3,7 +3,8 @@ module top (
     input  logic reset,
     ////////输出
     output logic dbg_commit,
-    output logic [31:0] dbg_regs [0:31]//寄存器数据输出
+    output logic [31:0] dbg_regs [0:31],//寄存器数据输出
+    output logic [31:0] dbg_pc
 );
 
     /* =======================
@@ -12,6 +13,8 @@ module top (
     logic [31:0] pc, pc_next, pc_plus4;
     logic [31:0] instr;
     logic pc_write, ifid_write;
+    //////pc暴露给上游
+    assign dbg_pc = pc;
 
     if_stage u_if (
         .pc    (pc),
@@ -308,7 +311,6 @@ module top (
        MEM / WB
     ======================= */
     logic [31:0] wb_mem_data, wb_alu_result;
-    logic wb_mem_to_reg, wb_reg_write;
     logic [4:0] wb_rd;
     logic [31:0] wb_pc_plus4;
     mem_wb u_memwb (
@@ -343,7 +345,9 @@ module top (
         .alu_result (wb_alu_result),
         .mem_data   (wb_mem_data),
         .pc_plus4   (wb_pc_plus4),
-        .wb_data    (wb_wdata)
+        .wb_data    (wb_wdata),
+        .wb_reg_write(wb_reg_write_final)
+        
     );
 
     /* =======================

@@ -1,6 +1,7 @@
 module debug_mux (
     input  logic [3:0]  sel,          // SW[3:0]
     input  logic [31:0] regs [0:31],
+    input  logic [31:0] dbg_pc,
     output logic [31:0] dbg_data
 );
 
@@ -16,5 +17,4 @@ always_comb begin
         default: dbg_data = 32'hDEADBEEF;
     endcase
 end
-
 endmodule

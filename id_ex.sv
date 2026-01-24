@@ -89,45 +89,51 @@ module id_ex (
             ex_pc_plus4     <= 32'b0;
 
         end else if (flush) begin
-            // 插入 bubble（NOP）
-            // 数据无所谓，控制信号必须清零
+    // 数据清零（防 X）
+            ex_rs1_val    <= 32'b0;
+            ex_rs2_val    <= 32'b0;
+            ex_imm        <= 32'b0;
+            ex_rs         <= 5'b0;
+            ex_rt         <= 5'b0;
+            ex_rd         <= 5'b0;
+            ex_pc_plus4   <= 32'b0;
+            ex_shamt      <= 5'b0;
+
+    // 控制清零（NOP）
             ex_alu_ctrl   <= 4'b0;
             ex_alu_src    <= 1'b0;
-
             ex_mem_read   <= 1'b0;
             ex_mem_write  <= 1'b0;
-
             ex_reg_write  <= 1'b0;
             ex_mem_to_reg <= 1'b0;
             ex_reg_dst    <= 1'b0;
-            ex_shamt      <= 5'b0;
             ex_is_branch    <= 1'b0;
             ex_is_branch_ne <= 1'b0;
             ex_jump         <= 1'b0;
-            //ex_is_jr        <= 1'b0;
             ex_jal          <= 1'b0;
-            ex_pc_plus4     <= 32'b0;
-        end 
-        else if (stall) begin
-    // 插入 bubble（NOP）
+     end else if (stall) begin
+    // 数据清零（防 X）
+            ex_rs1_val    <= 32'b0;
+            ex_rs2_val    <= 32'b0;
+            ex_imm        <= 32'b0;
+            ex_rs         <= 5'b0;
+            ex_rt         <= 5'b0;
+            ex_rd         <= 5'b0;
+            ex_pc_plus4   <= 32'b0;
+            ex_shamt      <= 5'b0;
+
+    // 控制清零（NOP）
             ex_alu_ctrl   <= 4'b0;
             ex_alu_src    <= 1'b0;
-
-            ex_mem_read   <= 1'b0;   // ⭐ 关键
+            ex_mem_read   <= 1'b0;
             ex_mem_write  <= 1'b0;
-
             ex_reg_write  <= 1'b0;
             ex_mem_to_reg <= 1'b0;
             ex_reg_dst    <= 1'b0;
-
             ex_is_branch    <= 1'b0;
             ex_is_branch_ne <= 1'b0;
             ex_jump         <= 1'b0;
-            //ex_is_jr        <= 1'b0;
             ex_jal          <= 1'b0;
-
-            ex_shamt      <= 5'b0;
-            ex_pc_plus4   <= 32'b0;
         end  else begin
             // 正常流水
             ex_rs1_val    <= id_rs1_val;
